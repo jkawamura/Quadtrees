@@ -9,4 +9,8 @@ public class Pixel {
         green=green;
         blue=blue;
     }
+
+    public static pixel{
+
+    }
 }
