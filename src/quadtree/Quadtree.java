@@ -4,93 +4,102 @@ import java.util.ArrayList;
 
 public class Quadtree {
 
-    String[] topLeft;
-    String[] bottomRight;
-
-    ArrayList<Integer[]> image;
-    int height;
+    ArrayList<Pixel[]> image;
+    int topLeftRow;
+    int topLeftCol;
     int width;
-    int rowCor;
-    int colCor;
-    int area = length*width;
-    int colorDepth;
-    int C;
-    Quadtree right;
-    Quadtree midRight;
-    Quadtree left;
-    Quadtree midLeft;
+    int height;
+    Quadtree left = null;
+    Quadtree midLeft = null;
+    Quadtree right = null;
+    Quadtree midRight = null;
 
-
-    public Quadtree(ArrayList<Integer[]> image){
-        height = image.size();
-        width = image.get(0).length/3;
-        constructTree();
+    public Quadtree(ArrayList<Pixel[]> image, int topLeftRow, int topLeftCol, int height, int width){
+        this.image = image;
+        this.topLeftRow = topLeftRow;
+        this.topLeftCol = topLeftCol;
+        this.width = width;
+        this.height = height;
     }
 
-    public void constructTree(){
+    public void Compression(){
+        Pixel meanPixel = MeanColor();
+        double meanError = 0;
+        //finds the squared error of each pixel
+        for(int j = topLeftRow; j < height + topLeftRow; j++){
+            for(int i = topLeftCol; i < width + topLeftCol; i++){
+                meanError += image.get(j)[i].SquaredError(meanPixel);
+            }
+        } meanError = meanError/(height*width);
 
-        right = Quadtree();
-        right.constructTree();
-        left.constructTree();
-        midRight.constructTree();
-        midLeft.constructTree();
+        if(height <= 1 || width <= 1){
+            return;
+        } else if(meanError > 1000){
+            this.left = new Quadtree(image, topLeftRow, topLeftCol, height/2, width/2);
+            System.out.println(left.topLeftRow);
+            this.midLeft = new Quadtree(image, (topLeftRow + image.size())/2 - 1, topLeftCol,
+                    height - height/2, width/2);
+            System.out.println(midLeft.topLeftRow);
+            this.right = new Quadtree(image,  topLeftRow, (topLeftCol +
+                    image.get(0).length)/2 - 1,height/2, width - width/2);
+            System.out.println(right.topLeftRow);
+            this.midRight = new Quadtree(image, (topLeftRow + image.size())/2 - 1, (topLeftCol +
+                    image.get(0).length)/2 - 1, height - height/2, width - width/2);
+            System.out.println(midRight.topLeftRow);
+        } else {
+            return;
+        }
     }
 
-    public void compression(){
-
+    private void fillColor(Pixel meanPixel){
+        for(int j = topLeftRow; j < height + topLeftRow; j++){
+            for(int i = topLeftCol; i < width + topLeftCol; i++){
+                image.get(j)[i].red = meanPixel.red;
+                image.get(j)[i].green = meanPixel.green;
+                image.get(j)[i].blue = meanPixel.blue;
+            }
+        }
     }
 
-    private void compressionHelper(Integer[] coordinates){
-        int counterR = 0;
-        long meanColorR = 0;
-        for(int i = coordinates[0]; i <= coordinates[2]; i++){
-            for(int j = coordinates[1]; i <= coordinates[3] - 2; i+=3){
-                meanColorR += image.get(i)[j];
-                counterR ++;
+    //calculates the mean color of the node
+    private Pixel MeanColor(){
+        int meanR = 0;
+        int meanG = 0;
+        int meanB = 0;
+
+        //loops through all the pixels in the node
+        for(int j = topLeftRow; j < height + topLeftRow;  j++){
+            for(int i = topLeftCol; i < width + topLeftCol; i++){
+                Pixel pixel = image.get(j)[i];
+                meanR += pixel.red;
+                meanG += pixel.green;
+                meanB += pixel.blue;
             }
         }
-        meanColorR = meanColorR/counterR;
-
-        int counterG = 0;
-        long meanColorG = 0;
-        for(int i = coordinates[0]; i <= coordinates[2]; i++){
-            for(int j = coordinates[1] + 1; i <= coordinates[3] - 1; i+=3){
-                meanColorG += image.get(i)[j];
-                counterG ++;
-            }
-        }
-        meanColorG = meanColorG/counterG;
-
-
-        int counterB = 0;
-        long meanColorB = 0;
-        for(int i = coordinates[0]; i <= coordinates[2]; i++){
-            for(int j = coordinates[1] + 2; i <= coordinates[3]; i+=3){
-                meanColorB += image.get(i)[j];
-                counterB ++;
-            }
-        }
-        meanColorB = meanColorB/counterB;
-
-        int counterTotal = 0;
-        long squaredError = 0;
-        for(int i = coordinates[0]; i <= coordinates[2]; i++){
-            for(int j = coordinates[1]; i <= coordinates[3] - 2; i+=3){
-                squaredError += (Math.pow((image.get(i)[j] - meanColorR), 2) +
-                        Math.pow((image.get(i)[j + 1] - meanColorG), 2) +
-                        Math.pow((image.get(i)[j + 2] - meanColorB), 2));
-                counterTotal ++;
-            }
-        }
-        squaredError = squaredError/counterTotal;
-
-        if(squaredError > threshold){
-            right = Quadtree(Integer());
-
-        }
-
-        compressionHelper()
+        Pixel meanPixel = new Pixel(meanR/(height * width),
+                meanG/(height * width), meanB/(height * width));
+        return meanPixel;
     }
 
-
+    public void Outline(Quadtree root){
+        for(int j = root.topLeftRow; j < root.height + root.topLeftRow; j++){
+            for(int i = root.topLeftCol; i < root.width + root.topLeftCol; i++){
+                if(i == root.topLeftCol || i == root.width + root.topLeftCol - 1 ||
+                        j == root.topLeftRow || j == root.height + root.topLeftRow - 1){
+                    image.get(j)[i].outline();
+                }
+            }
+        }
+        if(root.left == null && root.right == null && root.midLeft == null && root.midRight == null){
+            return;
+        } else if(root.left != null){
+            Outline(root.left);
+        } if(root.right != null){
+            Outline(root.right);
+        } if(root.midLeft != null){
+            Outline(root.midLeft);
+        } if(root.midRight != null){
+            Outline(root.midRight);
+        }
+    }
 }
