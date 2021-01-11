@@ -48,24 +48,26 @@ public class Main {
 
 				//creates the image arraylist containing pixel objects
 				image = new ArrayList<Pixel[]>();
+				int count = 0;
 				for(int j = 0; j < rows; j++){
 					Pixel[] imageRow = new Pixel[columns];
+					count++;
 					for(int k = 0; k < columns*3; k+=3){
 						Pixel temp = new Pixel(parseInt(fileLines.get(k+j*columns*3)),
 								parseInt(fileLines.get(k+1+j*columns*3)),
 								parseInt(fileLines.get(k+2+j*columns*3)));
 						imageRow[k/3] = temp;
-					} image.add(imageRow);
+					} System.out.println(count);
+					image.add(imageRow);
 
 				}
 				Quadtree test = new Quadtree(image, 0, 0, rows, columns);
-				test.Compression();
-				test.right.Compression();
 				/**&System.out.println(test.right.topLeftRow);
 				System.out.println(test.right.topLeftCol);
 				System.out.println(test.right.width);
 				System.out.println(test.right.height);**/
-				test.Outline(test);
+				test.Compression();
+				//test.Outline(test);
 				image = test.image;
 
 			}

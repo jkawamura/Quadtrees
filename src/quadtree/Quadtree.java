@@ -22,6 +22,9 @@ public class Quadtree {
         this.height = height;
     }
 
+    /**
+     * Compression method repeatedly subdivides the image into
+     */
     public void Compression(){
         Pixel meanPixel = MeanColor();
         double meanError = 0;
@@ -33,24 +36,33 @@ public class Quadtree {
         } meanError = meanError/(height*width);
 
         if(height <= 1 || width <= 1){
-            return;
-        } else if(meanError > 1000){
+            fillColor(meanPixel);
+        } else if(meanError > 500){
+
             this.left = new Quadtree(image, topLeftRow, topLeftCol, height/2, width/2);
-            System.out.println(left.topLeftRow);
-            this.midLeft = new Quadtree(image, (topLeftRow + image.size())/2 - 1, topLeftCol,
+            left.Compression();
+
+            this.midLeft = new Quadtree(image, topLeftRow + height/2 - 1, topLeftCol,
                     height - height/2, width/2);
-            System.out.println(midLeft.topLeftRow);
-            this.right = new Quadtree(image,  topLeftRow, (topLeftCol +
-                    image.get(0).length)/2 - 1,height/2, width - width/2);
-            System.out.println(right.topLeftRow);
-            this.midRight = new Quadtree(image, (topLeftRow + image.size())/2 - 1, (topLeftCol +
-                    image.get(0).length)/2 - 1, height - height/2, width - width/2);
-            System.out.println(midRight.topLeftRow);
+            midLeft.Compression();
+
+            this.right = new Quadtree(image,  topLeftRow, topLeftCol +
+                    width/2 - 1,height/2, width - width/2);
+            right.Compression();
+
+            this.midRight = new Quadtree(image, topLeftRow + height/2 - 1, topLeftCol +
+                    width/2 - 1, height - height/2, width - width/2);
+            midRight.Compression();
+
         } else {
-            return;
+            fillColor(meanPixel);
         }
     }
 
+    /**
+     * fills a node with the mean color of that node
+     * @param meanPixel the mean color
+     */
     private void fillColor(Pixel meanPixel){
         for(int j = topLeftRow; j < height + topLeftRow; j++){
             for(int i = topLeftCol; i < width + topLeftCol; i++){
@@ -61,13 +73,16 @@ public class Quadtree {
         }
     }
 
-    //calculates the mean color of the node
+    /**
+     * calculates the mean color of a given node
+     * @return the mean color
+     */
     private Pixel MeanColor(){
         int meanR = 0;
         int meanG = 0;
         int meanB = 0;
 
-        //loops through all the pixels in the node
+        //loops through all the pixels in the node and sums the rgb values
         for(int j = topLeftRow; j < height + topLeftRow;  j++){
             for(int i = topLeftCol; i < width + topLeftCol; i++){
                 Pixel pixel = image.get(j)[i];
@@ -76,11 +91,18 @@ public class Quadtree {
                 meanB += pixel.blue;
             }
         }
+
+        //averages the color value totals
         Pixel meanPixel = new Pixel(meanR/(height * width),
                 meanG/(height * width), meanB/(height * width));
+
         return meanPixel;
     }
 
+    /**
+     * outlines each leaf in the quadtree
+     * @param root the root of the quadtree
+     */
     public void Outline(Quadtree root){
         for(int j = root.topLeftRow; j < root.height + root.topLeftRow; j++){
             for(int i = root.topLeftCol; i < root.width + root.topLeftCol; i++){
