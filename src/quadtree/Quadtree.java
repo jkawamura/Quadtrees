@@ -22,6 +22,10 @@ public class Quadtree {
         this.height = height;
     }
 
+    public void EdgeDetection(){
+
+    }
+
     /**
      * Compression method repeatedly subdivides the image into
      */
@@ -37,21 +41,21 @@ public class Quadtree {
 
         if(height <= 1 || width <= 1){
             fillColor(meanPixel);
-        } else if(meanError > 500){
+        } else if(meanError > 1000){
 
             this.left = new Quadtree(image, topLeftRow, topLeftCol, height/2, width/2);
             left.Compression();
 
-            this.midLeft = new Quadtree(image, topLeftRow + height/2 - 1, topLeftCol,
+            this.midLeft = new Quadtree(image, topLeftRow + height/2 , topLeftCol,
                     height - height/2, width/2);
             midLeft.Compression();
 
             this.right = new Quadtree(image,  topLeftRow, topLeftCol +
-                    width/2 - 1,height/2, width - width/2);
+                    width/2 ,height/2, width - width/2);
             right.Compression();
 
-            this.midRight = new Quadtree(image, topLeftRow + height/2 - 1, topLeftCol +
-                    width/2 - 1, height - height/2, width - width/2);
+            this.midRight = new Quadtree(image, topLeftRow + height/2, topLeftCol +
+                    width/2 , height - height/2, width - width/2);
             midRight.Compression();
 
         } else {
