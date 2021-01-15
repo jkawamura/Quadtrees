@@ -44,20 +44,28 @@ public class Main {
 						fileLines.subList(0, j + 1).clear();
 						break;
 					}
+				}  for (int j = 0; j < fileLines.size(); j++) {
+					if(fileLines.get(j).equals("")){
+						fileLines.remove(j);
+					}
 				}
+
 
 				//creates the image arraylist containing pixel objects
 				image = new ArrayList<Pixel[]>();
 				int count = 0;
 				for(int j = 0; j < rows; j++){
 					Pixel[] imageRow = new Pixel[columns];
-					count++;
 					for(int k = 0; k < columns*3; k+=3){
+						//System.out.println(fileLines.get(k+j*columns*3));
+						//System.out.println(fileLines.get(k+ 1 + j*columns*3));
+						//System.out.println(fileLines.get(k+ 2 + j*columns*3));
+						//1209516
 						Pixel temp = new Pixel(parseInt(fileLines.get(k+j*columns*3)),
 								parseInt(fileLines.get(k+1+j*columns*3)),
 								parseInt(fileLines.get(k+2+j*columns*3)));
 						imageRow[k/3] = temp;
-					} System.out.println(count);
+					}
 					image.add(imageRow);
 
 				}
@@ -66,8 +74,10 @@ public class Main {
 				System.out.println(test.right.topLeftCol);
 				System.out.println(test.right.width);
 				System.out.println(test.right.height);**/
-				test.Compression();
+				//test.Compression();
 				//test.Outline(test);
+				test.EdgeDetection();
+				//test.Filters("negative");
 				image = test.image;
 
 			}
@@ -168,41 +178,4 @@ public class Main {
 
 			}**/
 
-
-
-		//System.out.println(rows + "" + columns + "" + colorDepth);
-		//for(String lines : fileLines){
-		//	System.out.println(lines);
-		//}
-		//int count = 0;
-		//for(String[] array : image){
-			//System.out.println(count + "" + array.length);
-			//count++;
-			//for(String element : array){
-				//System.out.println(element);
-			//}
-		//}
-		/**
-		BufferedWriter writer = new BufferedWriter(new FileWriter("test.ppm"));
-		writer.write("P3\n128 128\n255\n");
-			for(int j = 0; j < fileLines.size(); j+=3){
-				writer.write("\n" + fileLines.get(j) + " " + fileLines.get(j+1)  + " " + fileLines.get(j+2));
-			}
-		writer.close();
-		 *
-		BufferedWriter writer = new BufferedWriter(new FileWriter("test.ppm"));
-		writer.write("P3\n" + columns/3 + " " + rows + "\n255\n");
-		for(String[] array : image){
-			for(int j = 0; j < columns ; j+=3)
-				writer.write("\n" + array[j] + " " + array[j+1] + " " + array[j+2]);
-		}
-		writer.close();
-	}**/
-	/**
-	private static boolean search(String string, String[] args){
-		for(String arg : args){
-			return arg.equals(string);
-		}
-		return true;
-	}**/
 }

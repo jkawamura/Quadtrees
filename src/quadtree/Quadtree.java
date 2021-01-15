@@ -22,8 +22,81 @@ public class Quadtree {
         this.height = height;
     }
 
-    public void EdgeDetection(){
+    private void EdgeDetectionHelper(){
+        for(int j = topLeftRow; j < height + topLeftRow; j++){
+            for(int i = topLeftCol; i < width + topLeftCol; i++){
+                if(j == 0 || i == 0 || j == 511 || i == 511){
+                    continue;
+                } else{
+                    image.get(j)[i].EdgeDetection(image.get(j+1)[i-1], image.get(j+1)[i], image.get(j+1)[i+1],
+                            image.get(j)[i-1], image.get(j)[i+1], image.get(j-1)[i-1], image.get(j-1)[i],
+                            image.get(j-1)[i+1]);
+                }
 
+            }
+        }
+
+    }
+
+    public void Filters(String filter){
+        switch(filter){
+            case "negative":
+                for(int j = topLeftRow; j < height; j++){
+                    for(int i = topLeftCol; i < width; i++){
+                        image.get(j)[i].Negative();
+                    }
+                }
+                break;
+            case "grayscale":
+                for(int j = topLeftRow; j < height; j++){
+                    for(int i = topLeftCol; i < width; i++){
+                        image.get(j)[i].GrayScale();
+                    }
+                }
+                break;
+            case "sepia":
+                for(int j = topLeftRow; j < height; j++){
+                    for(int i = topLeftCol; i < width; i++){
+                        image.get(j)[i].Sepia();
+                    }
+                }
+                break;
+        }
+    }
+
+    public void EdgeDetection(){
+        Pixel meanPixel = MeanColor();
+        double meanError = 0;
+        //finds the squared error of each pixel
+        for(int j = topLeftRow; j < height + topLeftRow; j++){
+            for(int i = topLeftCol; i < width + topLeftCol; i++){
+                meanError += image.get(j)[i].SquaredError(meanPixel);
+            }
+        } meanError = meanError/(height*width);
+
+        if(height <= 1){
+            EdgeDetectionHelper();
+        } else if(meanError > 600){
+
+            this.left = new Quadtree(image, topLeftRow, topLeftCol, height/2, width/2);
+            left.EdgeDetection();
+
+            this.midLeft = new Quadtree(image, topLeftRow + height/2 , topLeftCol,
+                    height - height/2, width/2);
+            midLeft.EdgeDetection();
+
+            this.right = new Quadtree(image,  topLeftRow, topLeftCol +
+                    width/2 ,height/2, width - width/2);
+            right.EdgeDetection();
+
+            this.midRight = new Quadtree(image, topLeftRow + height/2, topLeftCol +
+                    width/2 , height - height/2, width - width/2);
+            midRight.EdgeDetection();
+
+        } else {
+            Pixel black = new Pixel(0, 0 ,0);
+            fillColor(black);
+        }
     }
 
     /**
@@ -41,7 +114,7 @@ public class Quadtree {
 
         if(height <= 1 || width <= 1){
             fillColor(meanPixel);
-        } else if(meanError > 1000){
+        } else if(meanError > 600){
 
             this.left = new Quadtree(image, topLeftRow, topLeftCol, height/2, width/2);
             left.Compression();
@@ -65,14 +138,14 @@ public class Quadtree {
 
     /**
      * fills a node with the mean color of that node
-     * @param meanPixel the mean color
+     * @param pixel the mean color
      */
-    private void fillColor(Pixel meanPixel){
+    private void fillColor(Pixel pixel){
         for(int j = topLeftRow; j < height + topLeftRow; j++){
             for(int i = topLeftCol; i < width + topLeftCol; i++){
-                image.get(j)[i].red = meanPixel.red;
-                image.get(j)[i].green = meanPixel.green;
-                image.get(j)[i].blue = meanPixel.blue;
+                image.get(j)[i].red = pixel.red;
+                image.get(j)[i].green = pixel.green;
+                image.get(j)[i].blue = pixel.blue;
             }
         }
     }
