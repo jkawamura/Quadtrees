@@ -5,12 +5,29 @@ public class Pixel {
     int green;
     int blue;
 
+    /**
+     * Pixel class stores the raw rgb values from the ppm file
+     * @param red
+     * @param green
+     * @param blue
+     */
     public Pixel(int red, int green, int blue){
         this.red=red;
         this.green=green;
         this.blue=blue;
     }
 
+    /**
+     * Implements
+     * @param pixelTLeft
+     * @param pixelTop
+     * @param pixelTRight
+     * @param pixelLeft
+     * @param pixelRight
+     * @param pixelBLeft
+     * @param pixelBot
+     * @param pixelBRight
+     */
     public void EdgeDetection(Pixel pixelTLeft, Pixel pixelTop, Pixel pixelTRight, Pixel pixelLeft, Pixel pixelRight,
                               Pixel pixelBLeft, Pixel pixelBot, Pixel pixelBRight){
         PixelMultiply(8);
@@ -37,6 +54,7 @@ public class Pixel {
         this.blue *= mult;
     }
 
+
     private void PixelRound(){
         if(this.red + this.green + this.blue > 127){
             this.red = 255;
@@ -61,14 +79,18 @@ public class Pixel {
         }**/
     }
 
-    //applies a negative filter to the pixel
+    /**
+     * applies a negative filter to the pixel
+     */
     public void Negative(){
         red = 255 - red;
         green = 255 - green;
         blue = 255 - blue;
     }
 
-    //applies grayscale filter to the pixel
+    /**
+     * applies grayscale filter to the pixel
+     */
     public void GrayScale(){
         double c = .3*red + .59*green + .113*blue;
         red = (int) c;
@@ -78,13 +100,20 @@ public class Pixel {
     //outputRed = (inputRed * .393) + (inputGreen *.769) + (inputBlue * .189)
     //outputGreen = (inputRed * .349) + (inputGreen *.686) + (inputBlue * .168)
     //outputBlue = (inputRed * .272) + (inputGreen *.534) + (inputBlue * .131)
+
+    /**
+     * Applies the sepia filter the pixel
+     */
     public void Sepia(){
         double red = .393*this.red + .769*this.green + .189*this.blue;
         double green = .349*this.red + .686*this.green + .168*this.blue;
         double blue = .272*this.red + .534*this.green + .131*this.blue;
+
         this.red = (int) red;
         this.green = (int) green;
         this.blue = (int) blue;
+
+        //caps rgb values at 255
         if(this.red > 255){
             this.red = 255;
         } if(this.green > 255){
@@ -94,11 +123,16 @@ public class Pixel {
         }
     }
 
-    public double SquaredError(Pixel meanColor){
-        double error = Math.pow((red - meanColor.red), 2) +
+    /**
+     * returns the mean
+     * @param meanColor the mean color of all the pixels in the current quadtree node
+     * @return Squared error
+     */
+    public double Variance(Pixel meanColor){
+        double variance = Math.pow((red - meanColor.red), 2) +
                 Math.pow((green - meanColor.green), 2) +
                 Math.pow((blue - meanColor.blue), 2);
-        return error;
+        return variance;
     }
 
     public void outline(){

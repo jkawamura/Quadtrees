@@ -22,6 +22,9 @@ public class Quadtree {
         this.height = height;
     }
 
+    /**
+     *
+     */
     private void EdgeDetectionHelper(){
         for(int j = topLeftRow; j < height + topLeftRow; j++){
             for(int i = topLeftCol; i < width + topLeftCol; i++){
@@ -38,7 +41,11 @@ public class Quadtree {
 
     }
 
-    public void Filters(String filter){
+    /**
+     * switch for the different filter options. The filter method in each Pixel is called. 
+     * @param filter User-given filter
+     */
+    public void Filter(String filter){
         switch(filter){
             case "negative":
                 for(int j = topLeftRow; j < height; j++){
@@ -64,34 +71,34 @@ public class Quadtree {
         }
     }
 
-    public void EdgeDetection(){
+    public void EdgeDetection(int threshold){
         Pixel meanPixel = MeanColor();
         double meanError = 0;
         //finds the squared error of each pixel
         for(int j = topLeftRow; j < height + topLeftRow; j++){
             for(int i = topLeftCol; i < width + topLeftCol; i++){
-                meanError += image.get(j)[i].SquaredError(meanPixel);
+                meanError += image.get(j)[i].Variance(meanPixel);
             }
         } meanError = meanError/(height*width);
 
         if(height <= 1){
             EdgeDetectionHelper();
-        } else if(meanError > 600){
+        } else if(meanError > threshold){
 
             this.left = new Quadtree(image, topLeftRow, topLeftCol, height/2, width/2);
-            left.EdgeDetection();
+            left.EdgeDetection(threshold);
 
             this.midLeft = new Quadtree(image, topLeftRow + height/2 , topLeftCol,
                     height - height/2, width/2);
-            midLeft.EdgeDetection();
+            midLeft.EdgeDetection(threshold);
 
             this.right = new Quadtree(image,  topLeftRow, topLeftCol +
                     width/2 ,height/2, width - width/2);
-            right.EdgeDetection();
+            right.EdgeDetection(threshold);
 
             this.midRight = new Quadtree(image, topLeftRow + height/2, topLeftCol +
                     width/2 , height - height/2, width - width/2);
-            midRight.EdgeDetection();
+            midRight.EdgeDetection(threshold);
 
         } else {
             Pixel black = new Pixel(0, 0 ,0);
@@ -102,34 +109,34 @@ public class Quadtree {
     /**
      * Compression method repeatedly subdivides the image into
      */
-    public void Compression(){
+    public void Compression(int threshold){
         Pixel meanPixel = MeanColor();
         double meanError = 0;
         //finds the squared error of each pixel
         for(int j = topLeftRow; j < height + topLeftRow; j++){
             for(int i = topLeftCol; i < width + topLeftCol; i++){
-                meanError += image.get(j)[i].SquaredError(meanPixel);
+                meanError += image.get(j)[i].Variance(meanPixel);
             }
         } meanError = meanError/(height*width);
 
         if(height <= 1 || width <= 1){
             fillColor(meanPixel);
-        } else if(meanError > 600){
+        } else if(meanError > threshold){
 
             this.left = new Quadtree(image, topLeftRow, topLeftCol, height/2, width/2);
-            left.Compression();
+            left.Compression(threshold);
 
             this.midLeft = new Quadtree(image, topLeftRow + height/2 , topLeftCol,
                     height - height/2, width/2);
-            midLeft.Compression();
+            midLeft.Compression(threshold);
 
             this.right = new Quadtree(image,  topLeftRow, topLeftCol +
                     width/2 ,height/2, width - width/2);
-            right.Compression();
+            right.Compression(threshold);
 
             this.midRight = new Quadtree(image, topLeftRow + height/2, topLeftCol +
                     width/2 , height - height/2, width - width/2);
-            midRight.Compression();
+            midRight.Compression(threshold);
 
         } else {
             fillColor(meanPixel);

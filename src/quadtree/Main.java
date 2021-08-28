@@ -12,92 +12,139 @@ public class Main {
 	//-x running personal filter
 	//-e edge detection
 	//-c image compression
-	//-0 <filename> root name of output file to write to
+	//-o <filename> root name of output file to write to
 	//-i <filename> root name of input file
+
 
 	public static void main(String[] args) throws IOException {
 		//TODO: make this parse the command line arguments
-		int rows = 0;
-		int columns = 0;
-		int colorDepth = 0;
-		ArrayList<Pixel[]> image = null;
-
-		//searches for -i flag
+		Quadtree image = null;
+		String fileOut = null;
+		boolean outline = false;
+		boolean compress = false;
+		boolean write = false;
 		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-i")) {
-				//reads in
-				ArrayList<String> fileLines = new ArrayList<String>();
-				BufferedReader br = new BufferedReader(new FileReader(new File(args[i + 1])));
-				String line;
-				while ((line = br.readLine()) != null) {
-					String[] lineArr = line.split("\\s+");
-					Collections.addAll(fileLines, lineArr);
-				} br.close();
-
-
-				//cleans input
-				for (int j = 0; j < fileLines.size(); j++) {
-					if(fileLines.get(j).equals("255")){
-						colorDepth = parseInt(fileLines.get(j));
-						rows = parseInt(fileLines.get(j - 1));
-						columns = parseInt(fileLines.get(j - 2));
-						fileLines.subList(0, j + 1).clear();
-						break;
-					}
-				}  for (int j = 0; j < fileLines.size(); j++) {
-					if(fileLines.get(j).equals("")){
-						fileLines.remove(j);
-					}
-				}
-
-
-				//creates the image arraylist containing pixel objects
-				image = new ArrayList<Pixel[]>();
-				int count = 0;
-				for(int j = 0; j < rows; j++){
-					Pixel[] imageRow = new Pixel[columns];
-					for(int k = 0; k < columns*3; k+=3){
-						//System.out.println(fileLines.get(k+j*columns*3));
-						//System.out.println(fileLines.get(k+ 1 + j*columns*3));
-						//System.out.println(fileLines.get(k+ 2 + j*columns*3));
-						//1209516
-						Pixel temp = new Pixel(parseInt(fileLines.get(k+j*columns*3)),
-								parseInt(fileLines.get(k+1+j*columns*3)),
-								parseInt(fileLines.get(k+2+j*columns*3)));
-						imageRow[k/3] = temp;
-					}
-					image.add(imageRow);
-
-				}
-				Quadtree test = new Quadtree(image, 0, 0, rows, columns);
-				/**&System.out.println(test.right.topLeftRow);
-				System.out.println(test.right.topLeftCol);
-				System.out.println(test.right.width);
-				System.out.println(test.right.height);**/
-				//test.Compression();
-				//test.Outline(test);
-				test.EdgeDetection();
-				//test.Filters("negative");
-				image = test.image;
-
+			if(args[i].equals("-i") || args[i].equals("--input")) {
+				image = createImage(args[i + 1]);
 			}
 		}
 
-		//takes the image and converts it back to a ppm image
+		//searches for relevant flags
+		assert image!=null;
 		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("-o")) {
-				BufferedWriter writer = new BufferedWriter(new FileWriter("test.ppm"));
-				writer.write("P3\n" + columns + " " + rows + "\n255 ");
-				for(int j = 0; j < image.size(); j++){
-					for(int k = 0; k < image.get(0).length; k++){
-						writer.write("\n" + image.get(j)[k].red + " " + image.get(j)[k].green + " "
-								+ image.get(j)[k].blue + " ");
+			switch (args[i]) {
+				case "-x":
+					image.Filter(args[i + 1]);
+					break;
+				case "-c":
+				case "--compression":
+					compress = true;
+					image.Compression(parseInt(args[i+1]));
+					break;
+				case "-e":
+				case "--edge":
+					image.EdgeDetection(parseInt(args[i+1]));
+					break;
+				case "-t":
+				case "--outline":
+					outline = true;
+					break;
+				case ("-o"):
+				case ("--output"):
+					write = true;
+					fileOut = args[i+1];
+					break;
+			}
+		}
+		if(outline && compress){
+			image.Outline(image);
+		}
+
+		if(write){
+			writeImage(fileOut, image);
+		} else{
+			writeImage("output.ppm", image);
+		}
+	}
+
+	private static Quadtree createImage(String fileIn) throws IOException {
+		//reads in
+		int rows = 0;
+		int columns = 0;
+
+		ArrayList<String> fileLines = new ArrayList<String>();
+		BufferedReader br = new BufferedReader(new FileReader(new File(fileIn)));
+		String line;
+		while ((line = br.readLine()) != null) {
+			String[] lineArr = line.split("\\s+");
+			Collections.addAll(fileLines, lineArr);
+		}
+		br.close();
+
+		//cleans input
+		for (int j = 0; j < fileLines.size(); j++) {
+			if (fileLines.get(j).equals("255")) {
+				rows = parseInt(fileLines.get(j - 1));
+				columns = parseInt(fileLines.get(j - 2));
+				fileLines.subList(0, j + 1).clear();
+				break;
+			}
+		}
+		for (int j = 0; j < fileLines.size(); j++) {
+			if (fileLines.get(j).equals("")) {
+				fileLines.remove(j);
+			}
+		}
+
+
+		//creates the image arraylist containing pixel objects
+		ArrayList<Pixel[]> image = new ArrayList<Pixel[]>();
+		int count = 0;
+		for (int j = 0; j < rows; j++) {
+			Pixel[] imageRow = new Pixel[columns];
+			for (int k = 0; k < columns * 3; k += 3) {
+				//System.out.println(fileLines.get(k+j*columns*3));
+				//System.out.println(fileLines.get(k+ 1 + j*columns*3));
+				//System.out.println(fileLines.get(k+ 2 + j*columns*3));
+				//1209516
+				Pixel temp = new Pixel(parseInt(fileLines.get(k + j * columns * 3)),
+						parseInt(fileLines.get(k + 1 + j * columns * 3)),
+						parseInt(fileLines.get(k + 2 + j * columns * 3)));
+				imageRow[k / 3] = temp;
+			}
+			image.add(imageRow);
+		}
+		Quadtree test = new Quadtree(image, 0, 0, rows, columns);
+		return test;
+		/**&System.out.println(test.right.topLeftRow);
+		 System.out.println(test.right.topLeftCol);
+		 System.out.println(test.right.width);
+		 System.out.println(test.right.height);**/
+		//test.Compression();
+		//test.Outline(test);
+		//test.EdgeDetection();
+		//test.Filters("negative");
+		//image = test.image;
+	}
+
+	private static void writeImage(String fileOut, Quadtree tree) throws IOException {
+		//takes the image and converts it back to a ppm image
+				BufferedWriter writer = new BufferedWriter(new FileWriter(fileOut));
+				writer.write("P3\n" + tree.width + " " + tree.height + "\n255 ");
+				for(int j = 0; j < tree.image.size(); j++){
+					for(int k = 0; k < tree.image.get(0).length; k++){
+						writer.write("\n" + tree.image.get(j)[k].red + " " + tree.image.get(j)[k].green + " "
+								+ tree.image.get(j)[k].blue + " ");
 					}
 				}
 				writer.close();
-			}
-		}
 	}
+
+
+
+
+
+
 
 	private static ArrayList<String> createFile(String filename) throws IOException {
 		ArrayList<String> fileLines = new ArrayList<String>();
@@ -137,45 +184,4 @@ public class Main {
 			//image.add(temp);
 		} return image;
 	}
-
-
-		/**
-		for(int i = 0; i < args.length; i++){
-			if(args[i].equals("-0")){
-				//reads in
-				fileLines = createFile(args[i+1]);
-			}
-		}
-
-
-		if(search("-e", args)){
-			Quadtree compressTree = new Quadtree(fileLines);
-			compressTree
-			compressTree.compression();
-		}
-
-		else if(args[i].equals("-o")){
-
-		}
-
-
-		for(int i = 0; i < args.length; i++){
-			if(args[i].compareTo("-i") == 0){
-				process(args[i+1]);
-			}
-		}
-		for(String arg : args){
-			switch(arg){
-				case "-e":
-					//edge detection program
-				case "-c":
-					//image compression program
-				case "-x":
-					//
-				case "-o":
-
-
-
-			}**/
-
 }
