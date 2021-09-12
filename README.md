@@ -18,7 +18,7 @@
 
     Compresses the image to the specified threshold. Requires user to specify 
     threshold in following argument; e.g. '-i input.ppm -c 400'. The threshold 
-    represents the average variance required for a block of pixels to be compressed
+    represents the variance required for a block of pixels to be compressed
     into a single color. Basically, the higher the number, the more compressed the image will be.
     
 -e, --edge 
