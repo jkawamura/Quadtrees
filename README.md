@@ -1,13 +1,13 @@
 **ARGUMENTS**
 
--i, --input
- 
-    Must be followed by relative path to a .ppm input file.
+```-i, --input```
 
--o, --output
+Must be followed by relative path to a .ppm input file.
 
-    Must be followed by the desired name of the output file. The name must end in .ppm, 
-    and the generated file will be placed in the current directory. 
+```-o, --output```
+
+Must be followed by the desired name of the output file. The name must end in .ppm, 
+and the generated file will be placed in the current directory. 
     
 -x
 
